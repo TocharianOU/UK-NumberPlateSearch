@@ -1,0 +1,192 @@
+@font-face {
+    font-family: 'UKNumberPlate';
+    src: url('/fonts/UKNumberPlate.ttf') format('truetype');
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background: #333;
+    color: #fff;
+    padding: 10px 0;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+nav .logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 15px;
+}
+
+nav ul li {
+    display: inline;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+nav ul li a:hover {
+    background: #575757;
+}
+
+main {
+    flex: 1;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+}
+
+.search-module {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background: #f9f9f9;
+}
+
+.keyword-search {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background: #f9f9f9;
+}
+
+.keyword-search h2 {
+    margin-top: 0;
+}
+
+.keyword-search input {
+    padding: 5px;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.search-module h2,
+.keyword-search h2 {
+    margin-top: 0;
+}
+
+.pattern-input {
+    display: flex;
+    gap: 5px;
+}
+
+.pattern-input select {
+    padding: 5px;
+    font-size: 16px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+.search-results {
+    margin-top: 20px;
+    max-height: 3000px;
+    overflow-y: auto;
+}
+
+.results-three-column {
+    display: flex;
+    gap: 20px;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+    max-width: 33%;
+    /* 设置最大宽度 */
+    min-width: 250px;
+    /* 设置最小宽度 */
+}
+
+.result-item {
+    background: #ffcc00;
+    /* 黄色背景 */
+    color: #000;
+    /* 黑色文字 */
+    font-family: 'UKNumberPlate', sans-serif;
+    /* 使用自定义字体 */
+    font-size: 24px;
+    /* 字体大小 */
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.price {
+    font-size: 18px;
+}
+
+.view-plate {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background: #fff;
+    color: #007BFF;
+    border: 1px solid #007BFF;
+}
+
+.view-plate:hover {
+    background: #007BFF;
+    color: #fff;
+}
+
+.bottom-filler {
+    height: 100px;
+    /* 添加空白填充模块的高度 */
+}
