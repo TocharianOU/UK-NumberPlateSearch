@@ -6,8 +6,167 @@ import random
 import os
 
 ES_URL = "http://127.0.0.1:9200/suffix/_bulk"
-CACHE_FILE = "suffix_cache.json"
+ES_INDEX_URL = "http://127.0.0.1:9200/suffix"
+CACHE_FILE = "./suffix_cache.json"
 BULK_SIZE = 1000
+
+# 索引配置
+INDEX_CONFIG = {
+    "mappings": {
+      "properties": {
+        "currency": {
+          "type": "keyword"
+        },
+        "discountPercentage": {
+          "type": "float"
+        },
+        "isAvailable": {
+          "type": "boolean"
+        },
+        "originalNumber": {
+          "type": "keyword"
+        },
+        "plateNumber": {
+          "type": "text",
+          "store": True,
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "phonetic": {
+              "type": "text",
+              "analyzer": "phonetic_analyzer_soundex"
+            }
+          },
+          "analyzer": "letters_only_analyzer_ngram",
+          "fielddata": True
+        },
+        "plateType": {
+          "type": "keyword"
+        },
+        "price": {
+          "type": "float"
+        }
+      }
+    },
+    "settings": {
+      "index": {
+        "max_ngram_diff": "4",
+        "routing": {
+          "allocation": {
+            "include": {
+              "_tier_preference": "data_content"
+            }
+          }
+        },
+        "number_of_shards": "1",
+        "analysis": {
+          "filter": {
+            "soundex_filter": {
+              "replace": "false",
+              "type": "phonetic",
+              "encoder": "soundex"
+            }
+          },
+          "char_filter": {
+            "first_token_filter": {
+              "pattern": """(\S+)(\s+\S+)?""",
+              "type": "pattern_replace",
+              "replacement": "$1"
+            },
+            "remove_spaces_filter": {
+              "pattern": """\s+""",
+              "type": "pattern_replace",
+              "replacement": ""
+            },
+            "remove_digits_and_spaces_filter": {
+              "pattern": """[\d\s]+""",
+              "type": "pattern_replace",
+              "replacement": ""
+            },
+            "character_replacement_filter": {
+              "type": "mapping",
+              "mappings": [
+                "A => α",
+                "4 => α",
+                "B => β",
+                "8 => β",
+                "3 => β",
+                "D => δ",
+                "O => δ",
+                "0 => δ",
+                "E => ε",
+                "G => γ",
+                "6 => γ",
+                "C => ξ",
+                "I => ι",
+                "1 => ι",
+                "L => ι",
+                "Q => ο",
+                "S => σ",
+                "5 => σ",
+                "Z => ζ",
+                "2 => ζ",
+                "T => τ",
+                "7 => τ",
+                "P => π",
+                "R => π",
+                "U => μ",
+                "V => μ",
+                "Y => ν",
+                "M => μ",
+                "N => μ",
+                "K => κ",
+                "X => κ"
+              ]
+            },
+            "second_token_filter": {
+              "pattern": """(\S+\s+)?(\S+)""",
+              "type": "pattern_replace",
+              "replacement": "$2"
+            }
+          },
+          "analyzer": {
+            "phonetic_analyzer_soundex": {
+              "filter": [
+                "lowercase",
+                "soundex_filter"
+              ],
+              "char_filter": [
+                "remove_digits_and_spaces_filter"
+              ],
+              "type": "custom",
+              "tokenizer": "whitespace_tokenizer"
+            },
+            "letters_only_analyzer_ngram": {
+              "type": "custom",
+              "char_filter": [
+                "remove_digits_and_spaces_filter",
+                "character_replacement_filter"
+              ],
+              "tokenizer": "ngram_tokenizer"
+            }
+          },
+          "tokenizer": {
+            "ngram_tokenizer": {
+              "token_chars": [
+                "letter"
+              ],
+              "min_gram": "2",
+              "type": "ngram",
+              "max_gram": "4"
+            },
+            "whitespace_tokenizer": {
+              "pattern": """\s+""",
+              "type": "pattern"
+            }
+          }
+        },
+        "number_of_replicas": "0"
+      }
+    }
+}
 
 def load_cache():
     if os.path.exists(CACHE_FILE):
@@ -18,6 +177,22 @@ def load_cache():
 def save_cache(data):
     with open(CACHE_FILE, 'w') as f:
         json.dump(data, f)
+
+def check_and_create_index():
+    # 检查索引是否存在
+    response = requests.head(ES_INDEX_URL)
+    if response.status_code == 404:
+        print("Index not found, creating a new one...")
+        # 如果索引不存在，则创建
+        response = requests.put(ES_INDEX_URL, headers={'Content-Type': 'application/json'}, data=json.dumps(INDEX_CONFIG))
+        if response.status_code == 200:
+            print("Index created successfully.")
+        else:
+            print(f"Failed to create index: {response.text}")
+    elif response.status_code == 200:
+        print("Index already exists.")
+    else:
+        print(f"Error checking index: {response.status_code} - {response.text}")
 
 def generate_suffix_plate(last_state=None):
     letters = string.ascii_uppercase
@@ -58,8 +233,6 @@ def generate_suffix_plate(last_state=None):
                     "isAvailable": False
                 }
                 
-               # print(plate['plateNumber'])  # 打印生成的车牌数据
-                
                 yield plate
             
             suffix_index = 0  # 当数字变化时，重置后缀为初始值
@@ -77,6 +250,8 @@ def bulk_write_to_es(data):
     response.raise_for_status()
 
 def main():
+    check_and_create_index()  # 检查并创建索引
+    
     last_state = load_cache()
     
     while True:

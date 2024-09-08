@@ -14,6 +14,10 @@ dist-ssr
 
 ##cache
 /generate_data/*.json
+/generate_data/*.out
+/generate_data/path
+
+
 
 # Editor directories and files
 .vscode/*
